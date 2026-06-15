@@ -95,6 +95,10 @@ export const _splitChangPingGuiGe = (str) => {
   str = str.replaceAll('Custom ltems', 'Custom Items');
   str = str.replaceAll('Custom name and number', 'Custom Items');
 
+  // 🔥 新增：剥离价格后缀块，如 |$5.00_mimikyu_price_Custom Items:5.00
+  // 格式: |$数字_mimikyu_price_字段名:数值
+  str = str.replace(/\|\$\d+\.\d+_mimikyu_price_[^:]+:\d+\.\d+/g, '');
+
   const keywords = [
     'Size',
     'Specification',
@@ -105,7 +109,8 @@ export const _splitChangPingGuiGe = (str) => {
     'MODEL',
     'Custom Items',
     'Instruction',
-    'Name and Number'
+    'Name and Number',
+    'Players' // 🔥 新增：支持 Players 字段
   ];
 
   const resultObj = {};
@@ -134,7 +139,7 @@ export const _splitChangPingGuiGe = (str) => {
     }
   });
 
-  // 3. 构造匹配 “关键字 + 冒号” 的正则
+  // 3. 构造匹配 “关键字 + 冒号” 的正则（处理无空格的情况如 Size:26CUSTOM PATCH:No）
   const escapedKeywords = keywords.map(k =>
     k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   );
@@ -161,6 +166,14 @@ export const _splitChangPingGuiGe = (str) => {
     if (value.startsWith(':')) value = value.slice(1).trim();
 
     const camelKey = keywordToCamel[current.keyword];
+
+    // 🔥 新增：Custom Patch 多值逗号分隔，转为换行分隔
+    if (camelKey === 'customPatch' && value.includes(',')) {
+      // 过滤掉空值（如 "NO," 这种情况），保留有效补丁名
+      const patches = value.split(',').map(p => p.trim()).filter(p => p && p.toUpperCase() !== 'NO');
+      value = patches.join('\n');
+    }
+
     resultObj[camelKey] = value;
   }
 

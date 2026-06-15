@@ -50,7 +50,7 @@ export const _setDataFormat = (datas) => {
           obj["spec"] = strObj['customItems'] // 定制的姓名和号码
           obj["_customItems"] = _setCnPatch(strObj['customPatch'])
           // 定制：自己加了定制信息，跟备注放一起
-          obj["_instruction"] = strObj['instruction'] || strObj['nameAndNumber']
+          obj["_instruction"] = strObj['instruction'] || strObj['nameAndNumber'] || strObj['players']
           // 补丁
           obj["_customPatch"] = _setCnPatch(strObj['customPatch'])
           //重要，只有补丁，没有定制信息和号码，也算是定制

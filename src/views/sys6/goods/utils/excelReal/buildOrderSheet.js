@@ -29,7 +29,8 @@ const LEFT_LABELS = [
   "买家",
   "购买选项",
   "客户备注定制",
-  "补丁/规格",
+  "补丁/规格（1）",
+  "补丁/规格（2）",
   "尺寸",
   "订单号",
   "订单备注",
@@ -103,7 +104,7 @@ export async function buildOrderSheet(workbook, chunks, options) {
   });
 
   let r0 = 2;
-  const rowsInBlock = 8;
+  const rowsInBlock = 9;
   let chunkIdx = 0;
   for (const chunk of chunks) {
     chunkIdx += 1;
@@ -122,12 +123,12 @@ export async function buildOrderSheet(workbook, chunks, options) {
       ws.getRow(r0 + k).height = h;
     }
 
-    for (let k = 0; k < 8; k++) {
+    for (let k = 0; k < rowsInBlock; k++) {
       const cell = ws.getCell(r0 + k, 1);
       applyCardBorder(cell);
       cell.alignment = {
         horizontal: "center",
-        vertical: k === 7 ? "top" : "middle",
+        vertical: k === 8 ? "top" : "middle",
         wrapText: true,
       };
       if (k === 0) {
@@ -150,13 +151,13 @@ export async function buildOrderSheet(workbook, chunks, options) {
       const emptyCol = 3 + j * 2;
       const slot = chunk.slots[j];
 
-      for (let k = 0; k < 8; k++) {
+      for (let k = 0; k < rowsInBlock; k++) {
         const cell = ws.getCell(r0 + k, dataCol);
         cell.fill = FILL_ORDER;
         cell.font = { name: SHEET_FONT_NAME, size: SHEET_FONT_PT };
         cell.alignment = {
           horizontal: "center",
-          vertical: k === 7 ? "top" : "middle",
+          vertical: k === 8 ? "top" : "middle",
           wrapText: true,
         };
         applyCardBorder(cell);
@@ -179,20 +180,22 @@ export async function buildOrderSheet(workbook, chunks, options) {
         ins.value = slot._instruction;
         ins.font = { name: SHEET_FONT_NAME, size: SHEET_FONT_PT, color: { argb: "FF008000" } };
 
-        ws.getCell(r0 + 4, dataCol).value = displayBdAndggCn(slot.bdAndgg);
+        const patches = (slot.bdAndgg || '').split('\n');
+        ws.getCell(r0 + 4, dataCol).value = displayBdAndggCn(patches[0] || '');
+        ws.getCell(r0 + 5, dataCol).value = displayBdAndggCn(patches[1] || '');
 
-        const sz = ws.getCell(r0 + 5, dataCol);
+        const sz = ws.getCell(r0 + 6, dataCol);
         sz.value = slot.size;
         sz.font = { name: SHEET_FONT_NAME, size: SHEET_FONT_PT, color: { argb: "FFFF0000" } };
 
-        const sn = ws.getCell(r0 + 6, dataCol);
+        const sn = ws.getCell(r0 + 7, dataCol);
         sn.value = "\u00a0" + String(slot.order_sn || "");
         sn.numFmt = "@";
         const snColor = slot.sBuyColor ? slot.textColor : "blue";
         const snArgb = toArgb(snColor) || "FF0000FF";
         sn.font = { name: SHEET_FONT_NAME, size: SHEET_FONT_PT, color: { argb: snArgb }, underline: false };
 
-        ws.getCell(r0 + 7, dataCol).value = slot.orderRemark;
+        ws.getCell(r0 + 8, dataCol).value = slot.orderRemark;
 
         if (!skipImages && slot.imgUrl) {
           const imgKey = normalizeImageUrlForFetch(slot.imgUrl);

@@ -185,14 +185,25 @@ export const _splitChangPingGuiGe = (str) => {
 // 配置中文的补丁
 export const _setCnPatch = (str)=>{
   if(!str || str ==='NO' || str ==='No' || str ==='no') return ''
-  const inx = _findIndex(_patchOpts,['value',str])
-  if(inx === -1){
-    return str
+  // 🔥 新增：支持多值补丁（换行符分隔），分别转换后用换行符连接
+  if (str.includes('\n')) {
+    const patches = str.split('\n').map(p => _convertSinglePatch(p.trim()));
+    return patches.join('\n');
   }
-  if(__win_data.isPathUseEN){
-    return str // 开启英文模式，返回原始英文 value
+  return _convertSinglePatch(str);
+}
+
+// 单个补丁转换
+const _convertSinglePatch = (str) => {
+  if (!str) return '';
+  const inx = _findIndex(_patchOpts, ['value', str]);
+  if (inx === -1) {
+    return str; // 找不到则返回原始值
   }
-  return _patchOpts[inx].label // 关闭英文模式，返回中文 label
+  if (__win_data.isPathUseEN) {
+    return str;
+  }
+  return _patchOpts[inx].label;
 }
 
 // 配置中文的套装
